@@ -401,6 +401,14 @@ open class TerminalView: NSView, NSUserInterfaceValidations, TerminalDelegate {
         return useMetalRenderer
     }
 
+    /// The GPU that ``setUseMetal(_:)`` renders with.
+    ///
+    /// When `nil`, the system default device is used. On a Mac with two GPUs
+    /// that is the discrete one, and asking for it powers it up for as long as
+    /// the app holds it. Set this to the low-power device to avoid that. Read
+    /// when Metal is turned on, so set it before calling ``setUseMetal(_:)``.
+    public var preferredMetalDevice: MTLDevice?
+
     /// Draws one Metal frame immediately when the Metal renderer is active.
     ///
     /// Normal applications do not need this method. It supports deterministic
@@ -660,7 +668,7 @@ open class TerminalView: NSView, NSUserInterfaceValidations, TerminalDelegate {
             if metalView != nil {
                 return
             }
-            guard let device = MTLCreateSystemDefaultDevice() else {
+            guard let device = preferredMetalDevice ?? MTLCreateSystemDefaultDevice() else {
                 throw MetalError.deviceUnavailable
             }
             let surface = makeMetalView(frame: bounds, device: device)
